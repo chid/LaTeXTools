@@ -218,7 +218,7 @@ def get_cite_completions(view, point, autocompleting=False):
 
     # This may speed things up
     # So far this captures: the tag, and the THREE possible groups
-    multip = re.compile(r'\b(author|title|year|editor|journal|eprint)\s*=\s*(?:\{|"|\b)(.+?)(?:\}+|"|\b)\s*,?\s*\Z',re.IGNORECASE)
+    multip = re.compile(r'\b(author|title|year|editor|journal|eprint|key)\s*=\s*(?:\{|"|\b)(.+?)(?:\}+|"|\b)\s*,?\s*\Z',re.IGNORECASE)
 
     for bibfname in bib_files:
         # # THIS IS NO LONGER NEEDED as find_bib_files() takes care of it
@@ -251,7 +251,9 @@ def get_cite_completions(view, point, autocompleting=False):
                     "year": "", 
                     "editor": "",
                     "journal": "",
-                    "eprint": "" }
+                    "eprint": "",
+                    "key" : ""
+                    }
         for line in bib:
             line = line.strip()
             # Let's get rid of irrelevant lines first
@@ -268,7 +270,7 @@ def get_cite_completions(view, point, autocompleting=False):
                     titles.append(entry["title"])
                     years.append(entry["year"])
                     # For author, if there is an editor, that's good enough
-                    authors.append(entry["author"] or entry["editor"] or "????")
+                    authors.append(entry["author"] or entry["editor"] or entry["key"] or "????")
                     journals.append(entry["journal"] or entry["eprint"] or "????")
                     # Now reset for the next iteration
                     entry["keyword"] = ""
@@ -278,6 +280,7 @@ def get_cite_completions(view, point, autocompleting=False):
                     entry["editor"] = ""
                     entry["journal"] = ""
                     entry["eprint"] = ""
+                    entry["key"] = ""
                 # Now see if we get a new keyword
                 kp_match = kp.search(line)
                 if kp_match:
@@ -293,13 +296,15 @@ def get_cite_completions(view, point, autocompleting=False):
                 key = multip_match.group(1).lower()     # no longer decode. Was:    .decode('ascii','ignore')
                 value = multip_match.group(2)           #                           .decode('ascii','ignore')
                 entry[key] = value
+                # print(entry)
             continue
+
 
         # at the end, we are left with one bib entry
         keywords.append(entry["keyword"])
         titles.append(entry["title"])
         years.append(entry["year"])
-        authors.append(entry["author"] or entry["editor"] or "????")
+        authors.append(entry["author"] or entry["editor"] or entry["key"] or "????")        
         journals.append(entry["journal"] or entry["eprint"] or "????")
 
         print ( "Found %d total bib entries" % (len(keywords),) )
